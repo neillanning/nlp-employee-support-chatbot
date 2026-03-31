@@ -2,13 +2,10 @@ streamlit
 faster-whisper
 sentence-transformers
 chromadb
+sounddevice
 pypdf
 transformers
 peft
 accelerate
 bitsandbytes
-torch
-torchvision
-torchaudio
-sounddevice
-pyaudio
+torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
