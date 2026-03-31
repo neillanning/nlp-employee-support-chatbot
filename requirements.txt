@@ -2,7 +2,6 @@ streamlit
 faster-whisper
 sentence-transformers
 chromadb
-sounddevice
 pypdf
 transformers
 peft
@@ -11,3 +10,5 @@ bitsandbytes
 torch
 torchvision
 torchaudio
+sounddevice
+portaudio19   # This helps with PortAudio
