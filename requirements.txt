@@ -11,4 +11,4 @@ torch
 torchvision
 torchaudio
 sounddevice
-portaudio19   # This helps with PortAudio
+pyaudio
