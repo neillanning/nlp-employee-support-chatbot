@@ -7,7 +7,7 @@ from chromadb.config import Settings
 import pypdf
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
-BASE_MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
+BASE_MODEL_NAME = "microsoft/Phi-3-mini-4k-instruct"
 
 HF_TOKEN = os.getenv("HF_TOKEN")
 if not HF_TOKEN:
@@ -22,14 +22,14 @@ MAX_NEW_TOKENS = 80
 
 @st.cache_resource
 def load_models():
-    embedder = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")   # Public model - reliable on cloud
+    embedder = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
     
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME, token=HF_TOKEN)
     tokenizer.pad_token = tokenizer.eos_token
     
     model = AutoModelForCausalLM.from_pretrained(
         BASE_MODEL_NAME,
-        torch_dtype=torch.bfloat16,
+        torch_dtype=torch.float32,
         low_cpu_mem_usage=True,
         token=HF_TOKEN
     )
@@ -81,7 +81,7 @@ def rag_query(question):
     results = collection.query(query_embeddings=[query_emb.tolist()], n_results=TOP_K)
     context = "\n\n".join(results["documents"][0])
 
-    prompt = f"""You are a professional company support assistant. Answer ONLY the question asked in 1-2 short sentences. Never ask follow-up questions or add extra text.
+    prompt = f"""You are a professional company support assistant. Answer ONLY the question asked in 1-2 short sentences. Never ask follow-up questions.
 
 Company information:
 {context}
@@ -95,7 +95,7 @@ Answer:"""
     return answer
 
 st.title("🏢 Company Employee Support Chatbot")
-st.caption("Closed-domain RAG • Text only (Llama-3.2-3B)")
+st.caption("Closed-domain RAG • Fast & Stable")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -116,4 +116,4 @@ if prompt:
     with st.chat_message("assistant"):
         st.markdown(answer)
 
-st.sidebar.info("Closed-domain RAG chatbot for employee support.")
+st.sidebar.info("Closed-domain RAG chatbot using Phi-3-mini")
