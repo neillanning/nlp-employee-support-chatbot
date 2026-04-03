@@ -7,8 +7,8 @@ from chromadb.config import Settings
 import pypdf
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
-# Very small and fast model for reliable cloud deployment
-BASE_MODEL_NAME = "microsoft/Phi-3-mini-4k-instruct"
+# Tiny fast model - loads almost instantly on Streamlit Cloud
+BASE_MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 
 HF_TOKEN = os.getenv("HF_TOKEN")
 if not HF_TOKEN:
@@ -19,7 +19,7 @@ KNOWLEDGE_DIR = "./knowledge"
 CHROMA_PATH = "./chroma_db"
 
 TOP_K = 2
-MAX_NEW_TOKENS = 80
+MAX_NEW_TOKENS = 100
 
 @st.cache_resource
 def load_models():
@@ -96,7 +96,7 @@ Answer:"""
     return answer
 
 st.title("🏢 Company Employee Support Chatbot")
-st.caption("Closed-domain RAG • Fast & Stable")
+st.caption("Closed-domain RAG • Fast & Stable (TinyLlama)")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
