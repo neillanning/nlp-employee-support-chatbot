@@ -17,7 +17,7 @@ from peft import PeftModel
 # ---------------- Critical Fixes ----------------
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
-# ---------------- Robust Path Configuration ----------------
+# ---------------- Path Configuration ----------------
 if getattr(sys, 'frozen', False):
     BASE_PATH = sys._MEIPASS
 else:
@@ -152,7 +152,7 @@ def transcribe_audio(audio_bytes):
     segments, _ = whisper_model.transcribe(io.BytesIO(audio_bytes), beam_size=5, language="en")
     return " ".join(seg.text.strip() for seg in segments if seg.text.strip())
 
-# ---------------- RAG Query (No follow-up questions) ----------------
+# ---------------- RAG Query ----------------
 def rag_query(question, history=""):
     query_emb = embedder.encode(question)
     results = collection.query(query_embeddings=[query_emb.tolist()], n_results=TOP_K)
