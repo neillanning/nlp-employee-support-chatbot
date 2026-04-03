@@ -14,16 +14,15 @@ if not HF_TOKEN:
     st.error("HF_TOKEN is not set in Streamlit secrets.")
     st.stop()
 
-EMBED_MODEL_PATH = "./fine_tuned_models/fine_tuned_embedder"
 KNOWLEDGE_DIR = "./knowledge"
 CHROMA_PATH = "./chroma_db"
 
 TOP_K = 2
-MAX_NEW_TOKENS = 70
+MAX_NEW_TOKENS = 80
 
 @st.cache_resource
 def load_models():
-    embedder = SentenceTransformer(EMBED_MODEL_PATH, device="cpu")
+    embedder = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")   # Public model - reliable on cloud
     
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME, token=HF_TOKEN)
     tokenizer.pad_token = tokenizer.eos_token
@@ -36,9 +35,9 @@ def load_models():
     )
     
     pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device=-1)
-    return embedder, pipe, tokenizer
+    return embedder, pipe
 
-embedder, generation_pipe, tokenizer = load_models()
+embedder, generation_pipe = load_models()
 
 client = chromadb.PersistentClient(path=CHROMA_PATH, settings=Settings(allow_reset=True))
 collection = client.get_or_create_collection(name="company_knowledge")
@@ -82,14 +81,7 @@ def rag_query(question):
     results = collection.query(query_embeddings=[query_emb.tolist()], n_results=TOP_K)
     context = "\n\n".join(results["documents"][0])
 
-    prompt = f"""You are a company support assistant. Answer the question directly and stop.
-
-Rules:
-- Answer in 1 short sentence only.
-- Use only the company information below.
-- Never generate any new question.
-- Never output "Question:", "Follow-up", "Would you like", or similar.
-- Stop completely after the answer.
+    prompt = f"""You are a professional company support assistant. Answer ONLY the question asked in 1-2 short sentences. Never ask follow-up questions or add extra text.
 
 Company information:
 {context}
@@ -98,42 +90,12 @@ Question: {question}
 
 Answer:"""
 
-    output = generation_pipe(
-        prompt,
-        max_new_tokens=MAX_NEW_TOKENS,
-        do_sample=False,
-        temperature=0.1,
-        top_p=0.7,
-        repetition_penalty=1.8,
-        eos_token_id=tokenizer.eos_token_id,
-        pad_token_id=tokenizer.pad_token_id,
-        num_return_sequences=1
-    )
-
-    full_text = output[0]['generated_text']
-
-    if "Answer:" in full_text:
-        answer = full_text.split("Answer:")[-1].strip()
-    else:
-        answer = full_text.replace(prompt, "").strip()
-
-    # Aggressive hard cutoff
-    stop_phrases = ["Question:", "Follow-up", "Would you like", "Do you have", "Let me know", 
-                    "Anything else", "Next question", "Another question"]
-    for phrase in stop_phrases:
-        if phrase in answer:
-            answer = answer.split(phrase)[0].strip()
-            break
-
-    # Take only the first complete sentence
-    sentences = answer.split('. ')
-    if len(sentences) > 1:
-        answer = sentences[0] + '.'
-
+    output = generation_pipe(prompt, max_new_tokens=MAX_NEW_TOKENS, do_sample=False, temperature=0.1)
+    answer = output[0]['generated_text'].split("Answer:")[-1].strip() if "Answer:" in output[0]['generated_text'] else output[0]['generated_text'].replace(prompt, "").strip()
     return answer
 
 st.title("🏢 Company Employee Support Chatbot")
-st.caption("Closed-domain RAG • Strictly one answer only (Llama-3.2-3B)")
+st.caption("Closed-domain RAG • Text only (Llama-3.2-3B)")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -154,7 +116,4 @@ if prompt:
     with st.chat_message("assistant"):
         st.markdown(answer)
 
-st.sidebar.info("""**NLP Chatbot Project**
-- Closed-domain RAG using Llama-3.2-3B-Instruct
-- Retrieval with fine-tuned Sentence Transformers + ChromaDB
-- Responses grounded strictly in your company documents""")
+st.sidebar.info("Closed-domain RAG chatbot for employee support.")
