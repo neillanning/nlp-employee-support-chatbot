@@ -7,6 +7,7 @@ from chromadb.config import Settings
 import pypdf
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
+# Very small and fast model for reliable cloud deployment
 BASE_MODEL_NAME = "microsoft/Phi-3-mini-4k-instruct"
 
 HF_TOKEN = os.getenv("HF_TOKEN")
@@ -81,7 +82,7 @@ def rag_query(question):
     results = collection.query(query_embeddings=[query_emb.tolist()], n_results=TOP_K)
     context = "\n\n".join(results["documents"][0])
 
-    prompt = f"""You are a professional company support assistant. Answer ONLY the question asked in 1-2 short sentences. Never ask follow-up questions.
+    prompt = f"""You are a professional company support assistant. Answer ONLY the question asked in 1-2 short sentences. Never ask follow-up questions or add extra text.
 
 Company information:
 {context}
@@ -116,4 +117,4 @@ if prompt:
     with st.chat_message("assistant"):
         st.markdown(answer)
 
-st.sidebar.info("Closed-domain RAG chatbot using Phi-3-mini")
+st.sidebar.info("Closed-domain RAG chatbot for employee support.")
