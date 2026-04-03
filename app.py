@@ -7,7 +7,7 @@ from chromadb.config import Settings
 import pypdf
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
-# Fastest reliable model for Streamlit Cloud
+# Extremely small and fast model for Streamlit Cloud
 BASE_MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 
 HF_TOKEN = os.getenv("HF_TOKEN")
@@ -21,7 +21,7 @@ CHROMA_PATH = "./chroma_db"
 TOP_K = 2
 MAX_NEW_TOKENS = 100
 
-@st.cache_resource
+@st.cache_resource(show_spinner="Loading models...")
 def load_models():
     embedder = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
     
@@ -82,7 +82,7 @@ def rag_query(question):
     results = collection.query(query_embeddings=[query_emb.tolist()], n_results=TOP_K)
     context = "\n\n".join(results["documents"][0])
 
-    prompt = f"""You are a professional company support assistant. Answer ONLY the question asked in 1-2 short sentences. Never ask follow-up questions or add extra text.
+    prompt = f"""You are a professional company support assistant. Answer ONLY the question asked in 1-2 short sentences. Never ask follow-up questions.
 
 Company information:
 {context}
@@ -96,7 +96,7 @@ Answer:"""
     return answer
 
 st.title("🏢 Company Employee Support Chatbot")
-st.caption("Closed-domain RAG • Fast & Stable")
+st.caption("Closed-domain RAG • Fast Version")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
