@@ -7,7 +7,7 @@ from chromadb.config import Settings
 import pypdf
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
-# Tiny fast model - loads almost instantly on Streamlit Cloud
+# Fastest reliable model for Streamlit Cloud
 BASE_MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 
 HF_TOKEN = os.getenv("HF_TOKEN")
@@ -96,7 +96,7 @@ Answer:"""
     return answer
 
 st.title("🏢 Company Employee Support Chatbot")
-st.caption("Closed-domain RAG • Fast & Stable (TinyLlama)")
+st.caption("Closed-domain RAG • Fast & Stable")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
